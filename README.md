@@ -65,14 +65,14 @@ Además:
      `php bot.php --cron` te imprime la línea exacta.
 
    El cron se lanza cada hora, pero el bot solo publica cuando en Madrid es la hora configurada
-   (acepta hasta 5 min de retraso del cron, sin pasar de medianoche).
+   (si el cron llega tarde, acepta hasta `margen_minutos` de retraso, por defecto 30).
    Así no importa en qué zona horaria esté el servidor ni el cambio de hora verano/invierno.
    Además guarda la fecha en `last_posted.txt` para no publicar dos veces el mismo día.
 
    **Cuánto tarda:** el cron arranca en los primeros segundos del minuto y publicar lleva 1-3 s,
-   así que a las 23:59 el tuit sale hacia las 23:59:05. Si X falla, los reintentos se cortan antes
-   de las 00:00 para que el tuit nunca salga ya en el día siguiente. Si quieres margen para
-   reintentar, programa `23:58` o antes. El tiempo real de cada publicación queda en `bot.log`.
+   así que el tuit sale unos segundos después de la hora indicada. Si el cron se retrasa y ya es
+   el día siguiente (p. ej. las 00:15), se publica igualmente el mensaje del día anterior, siempre
+   dentro de `margen_minutos` y sin repetir. El tiempo real de cada publicación queda en `bot.log`.
 
 ## 4. Probar
 

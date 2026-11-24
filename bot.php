@@ -9,17 +9,18 @@
  *   php bot.php --dry-run --date="2026-12-31 23:59"   -> simula otra fecha
  *   php bot.php --force             -> publica ahora mismo (para probar)
  *
- * Tiempos de ejecución (para que el tuit no salga ya en el día siguiente):
+ * Tiempos de ejecución:
  *   - El cron del servidor suele arrancar en los primeros segundos del minuto programado
  *     (en hosting compartido puede retrasarse algo si el servidor va cargado).
  *   - Arrancar PHP y generar el mensaje: < 0,1 s.
  *   - Llamada a la API de X: normalmente 0,5-2 s.
  *   => Lo normal es que el tuit esté publicado unos 2-7 s después de la hora del cron.
- *      Con 23:59 sobran ~50 s de margen.
- *   - Si X falla se reintenta (hasta 3 intentos, 15 s de timeout cada uno y 5 s de pausa),
- *     pero los reintentos se cortan solos antes de las 00:00: nunca se publica
- *     un mensaje de ayer pasada la medianoche. Si quieres margen para reintentos,
- *     programa a las 23:58 o antes.
+ *   - Si X falla se reintenta (hasta 3 intentos, 15 s de timeout cada uno y 5 s de pausa):
+ *     como mucho ~1 minuto en total.
+ *   - Si el cron se ejecuta tarde, se publica igualmente mientras no hayan pasado más de
+ *     'margen_minutos' desde la hora configurada, AUNQUE YA SEA EL DÍA SIGUIENTE:
+ *     el mensaje siempre habla del día de la hora programada (a las 00:15 del 25 se
+ *     publica el mensaje del 24).
  */
 declare(strict_types=1);
 
@@ -57,7 +58,7 @@ if (!preg_match('/^([01]?\d|2[0-3]):([0-5]\d)$/', (string) ($config['hora_public
     fwrite(STDERR, "hora_publicacion debe tener formato HH:MM (p. ej. '23:59')\n");
     exit(1);
 }
-$targetMin = (int) $hm[1] * 60 + (int) $hm[2];
+$margin = max(1, (int) ($config['margen_minutos'] ?? 30));
 
 if (isset($opts['cron'])) {
     // El servidor puede estar en otra zona horaria (SiteGround suele usar UTC) y hay
@@ -68,22 +69,30 @@ if (isset($opts['cron'])) {
 }
 
 $stateFile = __DIR__ . '/last_posted.txt';
-$today     = $now->format('Y-m-d');
-$midnight  = $now->setTime(0, 0)->modify('+1 day')->getTimestamp();
+$day       = $now; // día del que habla el mensaje
 
 if (!$dry && !$force) {
-    $nowMin = (int) $now->format('G') * 60 + (int) $now->format('i');
-    // Se admite hasta 5 min de retraso del cron, siempre dentro del mismo día
-    if ($nowMin < $targetMin || $nowMin >= $targetMin + 5) {
+    // ¿Estamos dentro de la ventana [hora programada, hora programada + margen) de hoy
+    // o de ayer? Lo segundo ocurre si el cron llega tarde y ya ha pasado la medianoche.
+    $day = null;
+    foreach ([$now, $now->modify('-1 day')] as $candidate) {
+        $target = $candidate->setTime((int) $hm[1], (int) $hm[2]);
+        if ($now >= $target && $now < $target->modify("+{$margin} minutes")) {
+            $day = $candidate;
+            break;
+        }
+    }
+    if ($day === null) {
         exit(0); // no es la hora: el cron se lanza cada hora y solo actuamos una vez
     }
-    if (is_file($stateFile) && trim((string) file_get_contents($stateFile)) === $today) {
-        logMsg('Ya se publicó hoy, no se repite.');
+    if (is_file($stateFile) && trim((string) file_get_contents($stateFile)) === $day->format('Y-m-d')) {
+        logMsg('Ya se publicó el mensaje del ' . $day->format('Y-m-d') . ', no se repite.');
         exit(0);
     }
 }
+$today = $day->format('Y-m-d');
 
-$message = buildMessage($now, $config);
+$message = buildMessage($day, $config);
 $length  = tweetLength($message);
 
 if ($dry) {
@@ -103,16 +112,7 @@ foreach (['api_key', 'api_secret', 'access_token', 'access_token_secret'] as $ke
 
 // Hasta 3 intentos por si la API falla puntualmente
 for ($i = 1; $i <= 3; $i++) {
-    $timeout = 15;
-    if (!$force) {
-        // No dejar que una petición termine después de medianoche (2 s de margen)
-        $timeout = min($timeout, $midnight - time() - 2);
-        if ($timeout < 3) {
-            logMsg('Sin tiempo antes de medianoche: no se publica para no cambiar de día.');
-            exit(1);
-        }
-    }
-    [$code, $body] = postTweet($message, $config, $timeout);
+    [$code, $body] = postTweet($message, $config, 15);
     if ($code === 201) {
         $id = json_decode($body, true)['data']['id'] ?? '?';
         file_put_contents($stateFile, $today);

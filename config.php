@@ -13,11 +13,15 @@ return [
     // para ver la línea exacta que debes poner en SiteGround.
     //
     // ⏱ Cuánto tarda: el cron arranca en los primeros segundos del minuto y publicar
-    // lleva 1-3 s, así que con '23:59' el tuit sale hacia las 23:59:05 (~50 s de margen).
-    // Si X falla, los reintentos se cortan antes de las 00:00 para no publicar ya en el
-    // día siguiente. Si quieres margen para reintentar, usa '23:58' o antes.
+    // lleva 1-3 s, así que el tuit sale unos segundos después de la hora indicada.
+    // Si X falla se reintenta (como mucho ~1 minuto en total).
     'timezone'         => 'Europe/Madrid',
     'hora_publicacion' => '23:55',
+
+    // Minutos de retraso que se aceptan si el cron llega tarde. Puede pasar de la
+    // medianoche: con 23:55 y 30 min, una ejecución a las 00:15 publica igualmente
+    // el mensaje del día anterior (nunca dos veces el mismo día).
+    'margen_minutos'   => 30,
 
     // Día (MM-DD) en que {contador} vuelve a 1 cada año. '01-01' = cada 1 de enero.
     'inicio_anual' => '01-01',
