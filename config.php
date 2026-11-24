@@ -47,7 +47,7 @@ return [
         '01-06' => 'Los Reyes Magos han pasado y no han traído ningún velociraptor. Mejor así. Siempre alerta! 👑 #VelociraptorAttack',
         '05-01' => 'Hoy los velociraptores se han tomado el día libre. Un ataque menos. 🛠️ #VelociraptorAttack',
         '08-15' => 'Quince de agosto, medio país en la playa y ningún velociraptor en la arena. Verano tranquilo. 🏖️ #VelociraptorAttack',
-        '10-12' => 'Sin rastro de velociraptores, aunque si he detecado una cabra y varios cabrones. Seguimos vigilando. 🇪🇸 #VelociraptorAttack',
+        '10-12' => 'Sin rastro de velociraptores, aunque sí he detectado una cabra y varios cabrones. Seguimos vigilando. 🇪🇸 #VelociraptorAttack',
         '12-06' => 'Hoy más que nunca: Todo ciudadano tiene derecho a vivir sin ataques de velociraptor. 📜 #VelociraptorAttack',
         '12-08' => 'Puente cumplido sin un solo velociraptor. Así da gusto. Siempre Alerta! 🌉 #VelociraptorAttack',
         '12-25' => 'Navidad sin velociraptores bajo el árbol. El mejor regalo es seguir de una pieza. 🎁🦖 #VelociraptorAttack',
@@ -55,7 +55,7 @@ return [
         // Comunitat Valenciana (fecha fija)
         '03-19' => 'Con tanta mascletà y tanta cremà, ningún velociraptor se ha atrevido a acercarse. Bona nit! 🔥 #VelociraptorAttack',
         '06-24' => 'Fogueres encendidas, buen remedio contra velociraptores. Ni uno a la vista. 🔥🌊 #VelociraptorAttack',
-        '10-09' => 'Nou d\'Octubre, Dia de la Comunitat Valenciana. Ni un velociraptor en avistat a la terreta. Visca! 🦇 #VelociraptorAttack',
+        '10-09' => 'Nou d\'Octubre, Dia de la Comunitat Valenciana. Ni un velociraptor avistat a la terreta. Visca! 🦇 #VelociraptorAttack',
 
         // Otros días señalados
         '12-24' => 'Nochebuena y ni rastro de velociraptores. Que Papá Noel también vigile el tejado. 🎄🦖 #VelociraptorAttack',
