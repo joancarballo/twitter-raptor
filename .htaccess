@@ -1,0 +1,2 @@
+# Por si la carpeta acaba dentro de public_html: bloquea todo acceso web
+Require all denied

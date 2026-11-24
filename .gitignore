@@ -1,0 +1,8 @@
+# Datos sensibles
+.env
+
+# Archivos generados en el servidor
+bot.log
+last_posted.txt
+
+.DS_Store
