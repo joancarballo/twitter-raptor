@@ -46,7 +46,11 @@ Se ejecuta con un cron de SiteGround.
 
 Además:
 - `plantillas`: se elige una al azar cada día.
-- `especiales`: mensajes para fechas concretas (`'12-24' => '...'`).
+- `especiales`: mensajes para fechas concretas (`'12-24' => '...'`). Incluye los festivos nacionales
+  y los de la Comunitat Valenciana de fecha fija. Cada uno puede ser un texto o una lista (se elige al azar).
+- `especiales_pascua`: festivos móviles, en días respecto al Domingo de Pascua (se calcula cada año):
+  `'-2'` Viernes Santo, `'0'` Domingo de Pascua, `'+1'` Lunes de Pascua.
+- Prioridad: fecha fija > festivo móvil > plantillas.
 - Los hashtags se escriben tal cual (`#VelociraptorAttack`); X los convierte en enlace solo.
 
 ## 3. Subir a SiteGround

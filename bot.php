@@ -132,14 +132,42 @@ exit(1);
 
 function buildMessage(DateTimeImmutable $d, array $c): string
 {
-    $md = $d->format('m-d');
+    // Prioridad: fecha fija (MM-DD) > festivo móvil (días respecto al Domingo de Pascua) > plantillas
+    $md     = $d->format('m-d');
+    $offset = (int) easterSunday((int) $d->format('Y'))->diff($d->setTime(0, 0))->format('%r%a');
+    $pascua = $c['especiales_pascua'] ?? [];
+    $key    = ($offset > 0 ? '+' : '') . $offset; // '-2', '+1', '0'...
+
     if (!empty($c['especiales'][$md])) {
-        $template = $c['especiales'][$md];
+        $choice = $c['especiales'][$md];
+    } elseif (!empty($pascua[$key]) || !empty($pascua[(string) $offset])) {
+        $choice = $pascua[$key] ?? $pascua[(string) $offset];
     } else {
-        $list = $c['plantillas'];
-        $template = $list[array_rand($list)];
+        $choice = $c['plantillas'];
     }
+    // Un especial puede ser un texto o una lista de textos (se elige uno al azar)
+    $template = is_array($choice) ? $choice[array_rand($choice)] : $choice;
     return renderTemplate($template, $d, $c);
+}
+
+/** Domingo de Pascua (calendario gregoriano, algoritmo de Meeus). Sin depender de ext-calendar. */
+function easterSunday(int $y): DateTimeImmutable
+{
+    $a = $y % 19;
+    $b = intdiv($y, 100);
+    $c = $y % 100;
+    $d = intdiv($b, 4);
+    $e = $b % 4;
+    $f = intdiv($b + 8, 25);
+    $g = intdiv($b - $f + 1, 3);
+    $h = (19 * $a + $b - $d - $g + 15) % 30;
+    $i = intdiv($c, 4);
+    $k = $c % 4;
+    $l = (32 + 2 * $e + 2 * $i - $h - $k) % 7;
+    $m = intdiv($a + 11 * $h + 22 * $l, 451);
+    $month = intdiv($h + $l - 7 * $m + 114, 31);
+    $day   = (($h + $l - 7 * $m + 114) % 31) + 1;
+    return new DateTimeImmutable(sprintf('%04d-%02d-%02d', $y, $month, $day));
 }
 
 function renderTemplate(string $tpl, DateTimeImmutable $d, array $c): string
